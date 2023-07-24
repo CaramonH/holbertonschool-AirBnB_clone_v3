@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 """
-Create a new view for State objects 
+Create a new view for State objects
 that handles all default RESTFul API actions
 """
 
@@ -9,11 +9,13 @@ from models.state import State
 
 states_bp = Blueprint('states', __name__)
 
+
 @states_bp.route('/api/v1/states', methods=['GET'])
 def get_states():
     """Retrieves the list of all State objects."""
     states = State.query.all()
     return jsonify([state.to_dict() for state in states])
+
 
 @states_bp.route('/api/v1/states/<state_id>', methods=['GET'])
 def get_state(state_id):
@@ -22,6 +24,7 @@ def get_state(state_id):
     if not state:
         raise ValueError('State not found')
     return jsonify(state.to_dict())
+
 
 @states_bp.route('/api/v1/states', methods=['POST'])
 def create_state():
@@ -34,6 +37,7 @@ def create_state():
     state = State(name=data['name'])
     state.save()
     return jsonify(state.to_dict()), 201
+
 
 @states_bp.route('/api/v1/states/<state_id>', methods=['PUT'])
 def update_state(state_id):
@@ -50,6 +54,7 @@ def update_state(state_id):
     setattr(state, key, value)
     state.save()
     return jsonify(state.to_dict()), 200
+
 
 @states_bp.route('/api/v1/states/<state_id>', methods=['DELETE'])
 def delete_state(state_id):
