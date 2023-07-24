@@ -4,30 +4,32 @@ This module contains the index for the RESTful API
 """
 from flask import jsonify
 from api.v1.views import app_views
+from models import storage
+from models.amenity import Amenity
+from models.city import City
+from models.place import Place
+from models.review import Review
+from models.state import State
+from models.user import User
+
+
+classes = {"amenities": Amenity, "cities": City,
+           "places": Place, "reviews": Review, "states": State, "users": User}
 
 
 @app_views.route('/status')
-@app_views.route('/status', methods=['GET'])
 def status():
-    """Returns the status of the API."""
-    status_code = 200
-    status_message = "OK"
-    return jsonify({
-      "status_code": status_code,
-      "status_message": status_message
-    })
+    """Returns OK status"""
+    return jsonify({'status': 'OK'})
 
 
 @app_views.route('/stats')
-def class_stats():
-    """ return counts of class instances """
-    from models import storage
-    counts = {
-        "amenities": storage.count("Amenity"),
-        "cities": storage.count("City"),
-        "places": storage.count("Place"),
-        "reviews": storage.count("Review"),
-        "states": storage.count("State"),
-        "users": storage.count("User"),
-    }
-    return jsonify(counts)
+def get_stats():
+    """
+    Endpoint that retrieves the number of ojbects of each
+    type.
+    """
+    class_lib = {}
+    for name, clsname in classes.items():
+        class_lib[name] = storage.count(clsname)
+    return jsonify(class_lib)
