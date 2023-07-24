@@ -1,25 +1,35 @@
 #!/usr/bin/python3
 """
-Starts a copy of a flask application
+Starts up a copy of a flask-app
 """
-import os
 from flask import Flask
-from models import storage
 from api.v1.views import app_views
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'my_secret_key'
 
 app.register_blueprint(app_views)
 
 
 @app.teardown_appcontext
-def close_storage():
-    """Closes the storage engine."""
+def teardown_db(self):
+    """Closes the storage on teardown"""
+    from models import storage
     storage.close()
 
 
-if __name__ == '__main__':
-    host = os.environ.get('HBNB_API_HOST', '0.0.0.0')
-    port = os.environ.get('HBNB_API_PORT', 5000)
-    app.run(host=host, port=port, threaded=True)
+@app.errorhandler(404)
+def page_not_found(e):
+    """404 error handler"""
+    return {"error": "Not found"}, 404
+
+
+def start_flask():
+    """ start flask """
+    from os import getenv as env
+    app.run(host=env('HBNB_API_HOST', default='localhost'),
+            port=env('HBNB_API_PORT'),
+            threaded=True)
+
+
+if __name__ == "__main__":
+    start_flask()
