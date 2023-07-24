@@ -1,19 +1,20 @@
 #!/usr/bin/python3
 """
-Retrieves the number of each objects by type
+This module contains the index for the RESTful API
 """
-from api.v1.views import app_views
 from flask import jsonify
+from api.v1.views import app_views
 
-@app_views.route('/status', methods=['GET'])
+
+@app_views.route('/status')
 def status():
-    """Returns the status of the API."""
+    """Returns the status of the API"""
     return jsonify({"status": "OK"})
 
 
-@app_views.rout('/stats')
+@app_views.route('/stats')
 def class_stats():
-    """Return 'count' of class instances"""
+    """ return counts of class instances """
     from models import storage
     counts = {
         "amenities": storage.count("Amenity"),
