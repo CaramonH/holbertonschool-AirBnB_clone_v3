@@ -1,4 +1,7 @@
 #!/usr/bin/python3
+"""
+Starts a copy of a flask application
+"""
 import os
 from flask import Flask
 from models import storage
