@@ -1,68 +1,76 @@
 #!/usr/bin/python3
 """Create a new view for Users objects
 that handles all default RESTFul API actions"""
+from flask import jsonify, abort, request
 from api.v1.views import app_views
-from flask import abort, jsonify, make_response, request
-from models import storage
 from models.user import User
+from models import storage
 
 
-@app_views.route('/users', methods=['GET'], strict_slashes=False)
-def get_users():
-    """get user information for all users"""
-    users = []
-    for user in storage.all("User").values():
-        users.append(user.to_dict())
-    return jsonify(users)
-
-
-@app_views.route('/users/<string:user_id>', methods=['GET'],
+@app_views.route('/users', methods=['GET'],
                  strict_slashes=False)
-def get_user(user_id):
-    """get user information for specified user"""
-    user = storage.get("User", user_id)
-    if user is None:
-        abort(404)
-    return jsonify(user.to_dict())
+def get_user_no_id():
+    """ Gets an user if no id has been provided """
+    c_user = storage.all(User).values()
+    return jsonify([c.to_dict() for c in c_user])
 
 
-@app_views.route('/users/<string:user_id>', methods=['DELETE'],
+@app_views.route('/users/<user_id>', methods=['GET'],
                  strict_slashes=False)
-def delete_user(user_id):
-    """deletes a user based on its user_id"""
-    user = storage.get("User", user_id)
-    if user is None:
+def get_user_id(user_id=None):
+    """ Gets an user when an id is provided """
+    c_user = storage.all(User)
+    c_key = "User." + user_id
+    if c_key not in c_user:
         abort(404)
-    user.delete()
+    return (jsonify(c_user[c_key].to_dict()))
+
+
+@app_views.route('/users', methods=['POST'],
+                 strict_slashes=False)
+def new_user():
+    """ Creates a new user """
+    js_info = request.get_json()
+    if request.is_json is False:
+        abort(400, 'Not a JSON')
+    if 'email' not in js_info:
+        abort(400, 'Missing email')
+    if 'password' not in js_info:
+        abort(400, 'Missing password')
+    new_c = User(**js_info)
+    new_c.save()
+    return jsonify(new_c.to_dict()), 201
+
+
+@app_views.route('/users/<user_id>', methods=['DELETE'],
+                 strict_slashes=False)
+def delete_user(user_id=None):
+    """ Deletes an user based on the user id """
+    c_user = storage.all(User)
+    c_key = "User." + user_id
+    if c_key not in c_user:
+        abort(404)
+    storage.delete(c_user[c_key])
     storage.save()
-    return (jsonify({}))
+    return jsonify({}), 200
 
 
-@app_views.route('/users', methods=['POST'], strict_slashes=False)
-def post_user():
-    """create a new user"""
-    if not request.get_json():
-        return make_response(jsonify({'error': 'Not a JSON'}), 400)
-    if 'email' not in request.get_json():
-        return make_response(jsonify({'error': 'Missing email'}), 400)
-    if 'password' not in request.get_json():
-        return make_response(jsonify({'error': 'Missing password'}), 400)
-    user = User(**request.get_json())
-    user.save()
-    return make_response(jsonify(user.to_dict()), 201)
-
-
-@app_views.route('/users/<string:user_id>', methods=['PUT'],
+@app_views.route('/users/<user_id>', methods=['PUT'],
                  strict_slashes=False)
-def put_user(user_id):
-    """update a user"""
-    user = storage.get("User", user_id)
-    if user is None:
+def put_user(user_id=None):
+    """ Updates an user based on the user id """
+    js_info = request.get_json()
+    c_user = storage.all(User)
+    if request.is_json is False:
+        abort(400, 'Not a JSON')
+    js_info.pop('id', 'no_error_pls')
+    js_info.pop('created_at', 'no_error_pls')
+    js_info.pop('updated_at', 'no_error_pls')
+    js_info.pop('email', 'no_error_pls')
+    c_key = "User." + user_id
+    if c_key not in c_user:
         abort(404)
-    if not request.get_json():
-        return make_response(jsonify({'error': 'Not a JSON'}), 400)
-    for attr, val in request.get_json().items():
-        if attr not in ['id', 'email', 'created_at', 'updated_at']:
-            setattr(user, attr, val)
-    user.save()
-    return jsonify(user.to_dict())
+    for key, val in js_info.items():
+        setattr(c_user[c_key], key, val)
+    storage.save()
+    return jsonify(c_user[c_key].to_dict()), 200
