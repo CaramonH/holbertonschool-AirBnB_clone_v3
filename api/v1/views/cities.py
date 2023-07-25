@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 """Create a new view for Cities objects
 that handles all default RESTFul API actions"""
-"""Flask application for City class/entity"""
 from api.v1.views import app_views
 from models import storage
 from models.city import City
