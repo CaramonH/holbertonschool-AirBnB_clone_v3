@@ -9,7 +9,7 @@ from flask_cors import CORS
 app = Flask(__name__)
 app.register_blueprint(app_views)
 
-#Allow CORS for all routes on 0.0.0.0
+"""Allow CORS for all routes on 0.0.0.0"""
 CORS(app, resources={r"/*": {"origins": "0.0.0.0"}})
 
 
